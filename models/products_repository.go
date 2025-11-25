@@ -14,10 +14,8 @@ func NewProductsRepository(db *gorm.DB) *ProductsRepository {
 	}
 }
 
-func (r *ProductsRepository) GetAllProducts() ([]Product, error) {
+func (r *ProductsRepository) List() ([]Product, error) {
 	var products []Product
-	if err := r.db.Preload("Variants").Find(&products).Error; err != nil {
-		return nil, err
-	}
-	return products, nil
+	err := r.db.Preload("Variants").Find(&products).Error
+	return products, err
 }
