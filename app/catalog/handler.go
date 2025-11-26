@@ -18,7 +18,7 @@ const (
 
 type Response struct {
 	Products []Product `json:"products"`
-	AvailableProducts int `json:"available_products"`
+	TotalProductCount int `json:"available_products"`
 	Next int `json:"next"` 
 }
 
@@ -58,7 +58,17 @@ func (h *CatalogHandler) HandleGet(w http.ResponseWriter, r *http.Request) {
 		products[i] = Product{
 			Code:  p.Code,
 			Price: p.Price.InexactFloat64(),
+			Category: strconv.Itoa(int(p.ProductCategoryID)),
 		}
+	}
+	productCount, err := h.repo.CountProducts()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	var nextOffset int
+	if offset+limit < int(productCount) {
+		nextOffset = offset + limit + 1
 	}
 
 	// Return the products as a JSON response
@@ -66,6 +76,8 @@ func (h *CatalogHandler) HandleGet(w http.ResponseWriter, r *http.Request) {
 
 	response := Response{
 		Products: products,
+		TotalProductCount: int(productCount),
+		Next: nextOffset,
 	}
 
 	if err := json.NewEncoder(w).Encode(response); err != nil {

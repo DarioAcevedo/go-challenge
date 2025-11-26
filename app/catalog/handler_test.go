@@ -103,6 +103,9 @@ func TestCatalogHandler_HandleGet(t *testing.T) {
 				MockListProducts: func(limit int, offset int) ([]models.Product, error) {
 					return tt.mockProducts, tt.mockError
 				},
+				MockProductCount: func() (int64, error) {
+					return int64(len(tt.mockProducts)), nil
+				},
 			}
 			handler := NewCatalogHandler(mockRepo)
 			req := createRequest("GET", "/catalog?limit="+tt.limit+"&offset="+tt.offset, ``)
@@ -122,7 +125,7 @@ func TestCatalogHandler_HandleGet(t *testing.T) {
 				t.Fatalf("could not decode response: %v", err)
 			}
 			assert.Equal(t, tt.expectedLimit, mockRepo.CalledLimit)
-
+			assert.NotEmpty(t, responseBody.TotalProductCount)
 		})
 	}
 }
