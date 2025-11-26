@@ -4,18 +4,22 @@ import (
 	"gorm.io/gorm"
 )
 
-type ProductsRepository struct {
+type ProductsRepository interface {
+	ListProducts(limit int, offset int) ([]Product, error)
+}
+
+type productsRepository struct {
 	db *gorm.DB
 }
 
-func NewProductsRepository(db *gorm.DB) *ProductsRepository {
-	return &ProductsRepository{
+func NewProductsRepository(db *gorm.DB) ProductsRepository {
+	return &productsRepository{
 		db: db,
 	}
 }
 
-func (r *ProductsRepository) List() ([]Product, error) {
+func (r *productsRepository) ListProducts(limit, offset int) ([]Product, error) {
 	var products []Product
-	err := r.db.Preload("Variants").Find(&products).Error
+	err := r.db.Preload("Variants").Preload("Category").Limit(limit).Offset(offset).Find(&products).Error
 	return products, err
 }
