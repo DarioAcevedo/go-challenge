@@ -1,16 +1,24 @@
 package models
 
 import (
+	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 )
 
 type ProductsRepository interface {
-	ListProducts(limit int, offset int) ([]Product, error)
-	CountProducts() (productCount int64, err error)
+	ListProducts(*ProductFilters) ([]Product, error)
+	CountProducts(*ProductFilters) (productCount int64, err error)
 }
 
 type productsRepository struct {
 	db *gorm.DB
+}
+
+type ProductFilters struct {
+	Limit  int
+	Offset int
+	ProductCategory *string
+	PriceLt *decimal.Decimal
 }
 
 func NewProductsRepository(db *gorm.DB) ProductsRepository {
@@ -19,13 +27,28 @@ func NewProductsRepository(db *gorm.DB) ProductsRepository {
 	}
 }
 
-func (r *productsRepository) ListProducts(limit, offset int) ([]Product, error) {
+func (r *productsRepository) ListProducts(filters *ProductFilters) ([]Product, error) {
 	var products []Product
-	err := r.db.Preload("Variants").Preload("Category").Limit(limit).Offset(offset).Find(&products).Error
+
+	query := r.db.Model(&Product{}).Preload("ProductCategory").Preload("Variants")
+	if filters.ProductCategory != nil {
+		query = query.Joins("ProductCategory").Where("product_categories.name = ?", filters.ProductCategory)
+	}
+	if filters.PriceLt != nil {
+		query = query.Where("price < ?", filters.PriceLt)
+	}
+	err := query.Limit(filters.Limit).Offset(filters.Offset).Find(&products).Error
 	return products, err
 }
 
-func (r *productsRepository) CountProducts() (productCount int64, err error) {
-	err = r.db.Model(&Product{}).Count(&productCount).Error
+func (r *productsRepository) CountProducts(filters *ProductFilters) (productCount int64, err error) {
+	query := r.db.Model(&Product{})
+	if filters.ProductCategory != nil {
+		query = query.Joins("ProductCategory").Where("product_categories.name = ?", filters.ProductCategory)
+	}
+	if filters.PriceLt != nil {
+		query = query.Where("price < ?", filters.PriceLt)
+	}
+	err = query.Count(&productCount).Error
 	return 
 }

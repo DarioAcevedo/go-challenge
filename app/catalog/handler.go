@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/mytheresa/go-hiring-challenge/models"
+	"github.com/shopspring/decimal"
 )
 
 const (
@@ -40,13 +41,13 @@ func NewCatalogHandler(r models.ProductsRepository) *CatalogHandler {
 
 func (h *CatalogHandler) HandleGet(w http.ResponseWriter, r *http.Request) {
 	// parse queryparams
-	params:= r.URL.Query()
-	limit, offset, err := getPaginationParams(&params)
+	queryParmas:= r.URL.Query()
+	filters, err := getHandlerParams(&queryParmas)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	res, err := h.repo.ListProducts(limit, offset)
+	res, err := h.repo.ListProducts(&filters)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -61,14 +62,14 @@ func (h *CatalogHandler) HandleGet(w http.ResponseWriter, r *http.Request) {
 			Category: strconv.Itoa(int(p.ProductCategoryID)),
 		}
 	}
-	productCount, err := h.repo.CountProducts()
+	productCount, err := h.repo.CountProducts(&filters)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	var nextOffset int
-	if offset+limit < int(productCount) {
-		nextOffset = offset + limit + 1
+	if filters.Offset+filters.Limit < int(productCount) {
+		nextOffset = filters.Offset + filters.Limit + 1
 	}
 
 	// Return the products as a JSON response
@@ -84,6 +85,31 @@ func (h *CatalogHandler) HandleGet(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+}
+
+func getHandlerParams(params *url.Values) (models.ProductFilters, error) {
+	limit, offset, err := getPaginationParams(params)
+	if err != nil {
+		return models.ProductFilters{}, err
+	}
+	var category *string
+	if cat := params.Get("category"); cat != "" {
+		category = &cat
+	}
+	var priceLte *decimal.Decimal
+	if priceStr := params.Get("price_lt"); priceStr != "" {
+		priceDec, err := decimal.NewFromString(priceStr)
+		if err != nil {
+			return models.ProductFilters{}, fmt.Errorf("price_lt must be a valid decimal number")
+		}
+		priceLte = &priceDec
+	}
+	return models.ProductFilters{
+		ProductCategory: category,
+		PriceLt: priceLte,
+		Offset: offset,
+		Limit: limit,
+	}, nil
 }
 
 func getPaginationParams(params *url.Values) (limit, offset int, err error) {
