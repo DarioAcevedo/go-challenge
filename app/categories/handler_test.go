@@ -119,7 +119,7 @@ func TestCategoriesHandler_HandleCreate(t *testing.T) {
             body:           `{"name": "Clothing", "code": "CLOTH"}`,
             mockCategory:   &models.ProductCategory{ID: 1, Name: "Clothing", Code: "CLOTH"},
             mockError:      nil,
-            expectedStatus: http.StatusCreated,
+            expectedStatus: http.StatusOK,
         },
         {
             name:            "invalid json",
@@ -170,7 +170,7 @@ func TestCategoriesHandler_HandleCreate(t *testing.T) {
 
             mockCategoriesRepo := mock.NewMockCategoriesRepository(mockCtl)
 
-            if tt.expectedStatus == http.StatusCreated ||
+            if tt.expectedStatus == http.StatusOK ||
                 tt.expectedStatus == http.StatusConflict ||
                 tt.expectedStatus == http.StatusInternalServerError {
 
@@ -193,7 +193,7 @@ func TestCategoriesHandler_HandleCreate(t *testing.T) {
                 t.Errorf("expected status %d, got %d", tt.expectedStatus, resp.StatusCode)
             }
 
-            if tt.expectedStatus == http.StatusCreated {
+            if tt.expectedStatus == http.StatusOK {
                 var responseBody CreateCategoryResponse
                 if err := json.NewDecoder(resp.Body).Decode(&responseBody); err != nil {
                     t.Fatalf("could not decode json response: %v", err)

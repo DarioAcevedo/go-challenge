@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/mytheresa/go-hiring-challenge/app/api"
 	"github.com/mytheresa/go-hiring-challenge/models"
 )
 
@@ -35,7 +36,7 @@ func NewCategoriesHandler(r models.CategoriesRepository) *CategoriesHandler {
 func (h *CategoriesHandler) HandleGet(w http.ResponseWriter, r *http.Request) {
 	categories, err := h.repo.ListCategories()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		api.ErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 	
@@ -46,32 +47,28 @@ func (h *CategoriesHandler) HandleGet(w http.ResponseWriter, r *http.Request) {
 			Code: c.Code,
 		})
 	}
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(response); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	api.OKResponse(w, response)
 }
 
 
 func (h *CategoriesHandler) HandleCreate(w http.ResponseWriter, r *http.Request) {
 	var req Category
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "invalid request body", http.StatusBadRequest)
+		api.ErrorResponse(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
 	if req.Name == "" || req.Code == "" {
-        http.Error(w, "name and code are required", http.StatusBadRequest)
+		api.ErrorResponse(w, http.StatusBadRequest, "name and code are required")
         return
     }
 	category, err := h.repo.CreateCategory(req.Code, req.Name)
     if err != nil {
         switch err {
         case models.ErrCategoryCodeExists, models.ErrCategoryNameExists:
-            http.Error(w, err.Error(), http.StatusConflict)
+			api.ErrorResponse(w, http.StatusConflict, err.Error())
         default:
-            http.Error(w, err.Error(), http.StatusInternalServerError)
+			api.ErrorResponse(w, http.StatusInternalServerError, err.Error())
         }
         return
     }
@@ -81,12 +78,5 @@ func (h *CategoriesHandler) HandleCreate(w http.ResponseWriter, r *http.Request)
         Code: category.Code,
         Name: category.Name,
     }
-
-    w.Header().Set("Content-Type", "application/json")
-    w.WriteHeader(http.StatusCreated)
-    if err := json.NewEncoder(w).Encode(res); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
+	api.OKResponse(w, res)	
 }
