@@ -59,7 +59,7 @@ func (h *CatalogHandler) HandleGet(w http.ResponseWriter, r *http.Request) {
 		products[i] = Product{
 			Code:  p.Code,
 			Price: p.Price.InexactFloat64(),
-			Category: strconv.Itoa(int(p.ProductCategoryID)),
+			Category: strconv.Itoa(int(p.CategoryID)),
 		}
 	}
 	productCount, err := h.repo.CountProducts(&filters)

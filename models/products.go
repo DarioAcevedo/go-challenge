@@ -11,8 +11,8 @@ type Product struct {
 	Code     string          `gorm:"uniqueIndex;not null"`
 	Price    decimal.Decimal `gorm:"type:decimal(10,2);not null"`
 	Variants []Variant       `gorm:"foreignKey:ProductID"`
-	ProductCategoryID uint	 `gorm:"index;not null"`
-	ProductCategory   ProductCategory `gorm:"foreignKey:ProductCategoryID"`
+	CategoryID uint	 `gorm:"index;not null"`
+	Category   ProductCategory `gorm:"foreignKey:CategoryID;references:ID"`
 }
 
 func (p *Product) TableName() string {

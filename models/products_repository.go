@@ -30,9 +30,9 @@ func NewProductsRepository(db *gorm.DB) ProductsRepository {
 func (r *productsRepository) ListProducts(filters *ProductFilters) ([]Product, error) {
 	var products []Product
 
-	query := r.db.Model(&Product{}).Preload("ProductCategory").Preload("Variants")
+	query := r.db.Model(&Product{}).Preload("Category").Preload("Variants")
 	if filters.ProductCategory != nil {
-		query = query.Joins("ProductCategory").Where("product_categories.name = ?", filters.ProductCategory)
+		query = query.Joins("Category").Where(`"Category"."name" = ?`, filters.ProductCategory)
 	}
 	if filters.PriceLt != nil {
 		query = query.Where("price < ?", filters.PriceLt)
@@ -44,7 +44,7 @@ func (r *productsRepository) ListProducts(filters *ProductFilters) ([]Product, e
 func (r *productsRepository) CountProducts(filters *ProductFilters) (productCount int64, err error) {
 	query := r.db.Model(&Product{})
 	if filters.ProductCategory != nil {
-		query = query.Joins("ProductCategory").Where("product_categories.name = ?", filters.ProductCategory)
+		query = query.Joins("Category").Where(`"Category"."name" = ?`, filters.ProductCategory)
 	}
 	if filters.PriceLt != nil {
 		query = query.Where("price < ?", filters.PriceLt)
