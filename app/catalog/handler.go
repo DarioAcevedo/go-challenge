@@ -29,6 +29,19 @@ type Product struct {
 	Category string `json:"category"`
 }
 
+type ProductVariant struct {
+	SKU  string  `json:"sku"`
+	Price decimal.Decimal `json:"price"`
+	Name string `json:"name"`
+}
+
+type ProductDetails struct {
+	Code     string           `json:"code"`
+	Price    float64          `json:"price"`
+	Category string           `json:"category"`
+	Variants []ProductVariant `json:"variants"`
+}
+
 type CatalogHandler struct {
 	repo models.ProductsRepository
 }
@@ -59,7 +72,7 @@ func (h *CatalogHandler) HandleGet(w http.ResponseWriter, r *http.Request) {
 		products[i] = Product{
 			Code:  p.Code,
 			Price: p.Price.InexactFloat64(),
-			Category: strconv.Itoa(int(p.CategoryID)),
+			Category: p.Category.Name,
 		}
 	}
 	productCount, err := h.repo.CountProducts(&filters)
@@ -81,6 +94,47 @@ func (h *CatalogHandler) HandleGet(w http.ResponseWriter, r *http.Request) {
 		Next: nextOffset,
 	}
 
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func (h *CatalogHandler) HandleDetails(w http.ResponseWriter, r *http.Request) {
+	// parse queryparams
+	productCode := r.PathValue("code")
+	if productCode == "" {
+		http.Error(w, "product code is required", http.StatusBadRequest)
+		return
+	}
+	product, err := h.repo.GetProductByCode(productCode)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if product == nil {
+		http.Error(w, "product not found", http.StatusNotFound)
+		return
+	}
+	
+	// Map response
+	response := ProductDetails {
+		Code:  product.Code,
+		Price: product.Price.InexactFloat64(),
+		Category: product.Category.Name,
+	}
+	for _, variant := range product.Variants {
+		pv := ProductVariant{
+			SKU: variant.SKU,
+			Name: variant.Name,
+			Price: variant.Price,
+		}
+		if cmp := variant.Price.Cmp(decimal.Zero); cmp == 0 {
+			pv.Price = product.Price
+		}
+		response.Variants = append(response.Variants, pv)
+	}
+	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

@@ -1,6 +1,8 @@
 package models
 
 import (
+	"errors"
+
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 )
@@ -8,6 +10,7 @@ import (
 type ProductsRepository interface {
 	ListProducts(*ProductFilters) ([]Product, error)
 	CountProducts(*ProductFilters) (productCount int64, err error)
+	GetProductByCode(string) (*Product, error)
 }
 
 type productsRepository struct {
@@ -51,4 +54,18 @@ func (r *productsRepository) CountProducts(filters *ProductFilters) (productCoun
 	}
 	err = query.Count(&productCount).Error
 	return 
+}
+
+func (r *productsRepository) GetProductByCode(code string) (*Product, error) {
+	p := &Product{}
+
+	query := r.db.Model(&Product{}).Preload("Variants").Preload("Category").Where("code = ?", code)
+	err := query.First(p).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return p, nil
 }

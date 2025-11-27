@@ -49,6 +49,21 @@ func (mr *MockProductsRepositoryMockRecorder) CountProducts(arg0 interface{}) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountProducts", reflect.TypeOf((*MockProductsRepository)(nil).CountProducts), arg0)
 }
 
+// GetProductByCode mocks base method.
+func (m *MockProductsRepository) GetProductByCode(arg0 string) (*models.Product, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetProductByCode", arg0)
+	ret0, _ := ret[0].(*models.Product)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetProductByCode indicates an expected call of GetProductByCode.
+func (mr *MockProductsRepositoryMockRecorder) GetProductByCode(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProductByCode", reflect.TypeOf((*MockProductsRepository)(nil).GetProductByCode), arg0)
+}
+
 // ListProducts mocks base method.
 func (m *MockProductsRepository) ListProducts(arg0 *models.ProductFilters) ([]models.Product, error) {
 	m.ctrl.T.Helper()

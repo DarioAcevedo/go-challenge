@@ -195,6 +195,100 @@ func TestCatalogHandler_HandleGet(t *testing.T) {
 	}
 }
 
+func TestCatalogHandler_HandleDetails(t *testing.T) {
+	var mockProducts []models.Product
+	content, _:= os.ReadFile("testdata/products.json")
+	_ = json.Unmarshal(content, &mockProducts)
+	var tests = []struct {
+		name string
+		productCode string
+		expectedProduct *models.Product
+		expectedError error
+		expectedStatus int
+	}{
+		{
+			"product found",
+			"PROD001",
+			&mockProducts[0],
+			nil,
+			200,
+		},
+		{
+			"product code missing",
+			"",
+			nil,
+			fmt.Errorf("product code is required"),
+			400,
+		},
+		{
+			"product not found",
+			"UNKNOWN",
+			nil,
+			fmt.Errorf("product not found"),
+			404,
+		},
+		{
+			"repo get product returns error",
+			"PROD001",
+			nil,
+			fmt.Errorf("database error"),
+			500,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockCtl:= gomock.NewController(t)
+			defer mockCtl.Finish()
+			mockProductsRepo := mock.NewMockProductsRepository(mockCtl)
+			if tt.expectedStatus == 500 {
+				mockProductsRepo.
+				EXPECT().
+				GetProductByCode(tt.productCode).
+				Return(tt.expectedProduct, tt.expectedError).
+				Times(1)
+			} else if tt.expectedStatus == 400 {
+				mockProductsRepo.
+				EXPECT().
+				GetProductByCode(gomock.Any()).
+				Times(0)
+			} else {
+				mockProductsRepo.
+				EXPECT().
+				GetProductByCode(tt.productCode).
+				Return(tt.expectedProduct, nil).
+				Times(1)
+			}
+			
+			handler := NewCatalogHandler(mockProductsRepo)
+			req := createRequest(
+				"GET", 
+				"/catalog/"+tt.productCode, 
+				``)
+			req.SetPathValue("code", tt.productCode)
+			w := httptest.NewRecorder()
+			handler.HandleDetails(w, req)
+			resp := w.Result()
+			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
+			if tt.expectedError != nil {
+				body, _ := io.ReadAll(resp.Body)
+				assert.Contains(t, string(body), tt.expectedError.Error())
+				return
+			}
+			var responseBody ProductDetails
+			err := json.NewDecoder(resp.Body).Decode(&responseBody)
+			if err != nil {
+				t.Fatalf("could not decode response: %v", err)
+			}
+			assert.Equal(t, tt.expectedProduct.Code, responseBody.Code)
+			for _, variant := range responseBody.Variants {
+				fmt.Println(variant)
+				comp := variant.Price.Cmp(decimal.Zero)
+				assert.Greater(t, comp, 0)
+			}
+		})
+	}
+}
+
 func createRequest(method string, path string, body string) *http.Request { 
 	req := httptest.NewRequest(method, path, strings.NewReader(body))
 	return req

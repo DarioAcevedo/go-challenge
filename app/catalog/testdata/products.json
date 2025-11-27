@@ -1,19 +1,5 @@
 [
-    {"Code": "100", "Price": 10, "ID": 1, "ProductCategoryID": 1},
-    {"Code": "200", "Price": 20, "ID": 2, "ProductCategoryID": 1},
-    {"Code": "300", "Price": 30, "ID": 3, "ProductCategoryID": 1},
-    {"Code": "400", "Price": 20, "ID": 4, "ProductCategoryID": 2},
-    {"Code": "500", "Price": 20, "ID": 5, "ProductCategoryID": 2},
-    {"Code": "600", "Price": 20, "ID": 6, "ProductCategoryID": 2},
-    {"Code": "700", "Price": 20, "ID": 7, "ProductCategoryID": 2},
-    {"Code": "800", "Price": 10, "ID": 8, "ProductCategoryID": 2},
-    {"Code": "900", "Price": 10, "ID": 9, "ProductCategoryID": 2},
-    {"Code": "1", "Price": 10, "ID": 10, "ProductCategoryID": 3},
-    {"Code": "2", "Price": 10, "ID": 11, "ProductCategoryID": 3},
-    {"Code": "3", "Price": 10, "ID": 12, "ProductCategoryID": 3},
-    {"Code": "4", "Price": 10, "ID": 13, "ProductCategoryID": 3},
-    {"Code": "5", "Price": 10, "ID": 14, "ProductCategoryID": 3},
-    {"Code": "6", "Price": 10, "ID": 15, "ProductCategoryID": 3},
-    {"Code": "7", "Price": 10, "ID": 16, "ProductCategoryID": 3},
-    {"Code": "8", "Price": 10, "ID": 17, "ProductCategoryID": 3}
+    {"Code": "PROD001", "Price": 10, "ID": 1, "CategoryID": 1, "Category": {"Code": "CAT001", "Name": "Clothing"}, "Variants": [{"SKU": "SKU001A", "Name": "Variant 1", "Price": 21.99}, {"SKU": "SKU002B", "Name": "Variant 2"}]},
+    {"Code": "PROD003", "Price": 30, "ID": 3, "CategoryID": 3, "Category": {"Code": "CAT003", "Name": "Shoes"}},
+    {"Code": "PROD002", "Price": 20, "ID": 2, "CategoryID": 2, "Category": {"Code": "CAT002", "Name": "Accessories"}}
 ]
