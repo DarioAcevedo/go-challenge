@@ -1,0 +1,5 @@
+[
+    {"Code": "PROD001", "Price": 10, "ID": 1, "CategoryID": 1, "Category": {"Code": "CAT001", "Name": "Clothing"}, "Variants": [{"SKU": "SKU001A", "Name": "Variant 1", "Price": 21.99}, {"SKU": "SKU002B", "Name": "Variant 2"}]},
+    {"Code": "PROD003", "Price": 30, "ID": 3, "CategoryID": 3, "Category": {"Code": "CAT003", "Name": "Shoes"}},
+    {"Code": "PROD002", "Price": 20, "ID": 2, "CategoryID": 2, "Category": {"Code": "CAT002", "Name": "Accessories"}}
+]
