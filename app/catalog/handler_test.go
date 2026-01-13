@@ -97,7 +97,7 @@ func TestCatalogHandler_HandleGet(t *testing.T) {
 			"10",
 			"Clothing",
 			models.ProductFilters{},
-			fmt.Errorf("Limit must be an integer\n"),
+			fmt.Errorf("Limit must be an integer"),
 			400,
 		},
 		{
@@ -281,7 +281,6 @@ func TestCatalogHandler_HandleDetails(t *testing.T) {
 			}
 			assert.Equal(t, tt.expectedProduct.Code, responseBody.Code)
 			for _, variant := range responseBody.Variants {
-				fmt.Println(variant)
 				comp := variant.Price.Cmp(decimal.Zero)
 				assert.Greater(t, comp, 0)
 			}
